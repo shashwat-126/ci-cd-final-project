@@ -1,0 +1,43 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: ci-cd-pipeline
+
+spec:
+  workspaces:
+    - name: output
+
+  params:
+    - name: repo-url
+      type: string
+      description: Git repository URL
+
+  tasks:
+
+    - name: cleanup
+      taskRef:
+        name: cleanup
+      workspaces:
+        - name: source
+          workspace: output
+
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      runAfter:
+        - cleanup
+      workspaces:
+        - name: output
+          workspace: output
+      params:
+        - name: url
+          value: $(params.repo-url)
+
+    - name: nose
+      taskRef:
+        name: nose
+      runAfter:
+        - git-clone
+      workspaces:
+        - name: source
+          workspace: output
